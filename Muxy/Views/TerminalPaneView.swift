@@ -31,7 +31,6 @@ struct GhosttyTerminalRepresentable: NSViewRepresentable {
             paneState?.title = title
         }
 
-        // Focus the terminal after the window is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             view.window?.makeFirstResponder(view)
         }
@@ -40,7 +39,6 @@ struct GhosttyTerminalRepresentable: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: GhosttyTerminalNSView, context: Context) {
-        // Reclaim focus on tab switch
         DispatchQueue.main.async {
             nsView.window?.makeFirstResponder(nsView)
         }

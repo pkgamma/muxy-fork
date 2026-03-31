@@ -1,8 +1,8 @@
 import Foundation
 
 enum SplitDirection: Sendable {
-    case horizontal // left | right
-    case vertical   // top / bottom
+    case horizontal
+    case vertical
 }
 
 enum SplitNode: Identifiable {
@@ -34,10 +34,7 @@ final class SplitBranch: Identifiable {
     }
 }
 
-// MARK: - Tree Operations
-
 extension SplitNode {
-    /// Replace the pane with `paneID` with a split containing the old pane and a new pane.
     func splitting(paneID: UUID, direction: SplitDirection, newPane: TerminalPaneState) -> SplitNode {
         switch self {
         case .pane(let pane) where pane.id == paneID:
@@ -55,7 +52,6 @@ extension SplitNode {
         }
     }
 
-    /// Remove the pane with `paneID`, promoting its sibling. Returns nil if tree becomes empty.
     func removing(paneID: UUID) -> SplitNode? {
         switch self {
         case .pane(let pane) where pane.id == paneID:
@@ -81,7 +77,6 @@ extension SplitNode {
         }
     }
 
-    /// Collect all leaf panes in tree order.
     func allPanes() -> [TerminalPaneState] {
         switch self {
         case .pane(let pane): [pane]
@@ -90,7 +85,6 @@ extension SplitNode {
         }
     }
 
-    /// Find a specific pane by ID.
     func findPane(id: UUID) -> TerminalPaneState? {
         switch self {
         case .pane(let pane): pane.id == id ? pane : nil

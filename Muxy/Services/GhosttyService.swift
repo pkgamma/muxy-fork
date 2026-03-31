@@ -2,8 +2,6 @@ import Foundation
 import AppKit
 import GhosttyKit
 
-/// Singleton managing the ghostty app lifecycle.
-/// Mirrors the pattern cmux uses: one ghostty_app_t for the entire process.
 @MainActor
 final class GhosttyService {
     static let shared = GhosttyService()
@@ -17,7 +15,6 @@ final class GhosttyService {
     }
 
     private func initializeGhostty() {
-        // Ensure TUI apps can use colors
         if getenv("NO_COLOR") != nil {
             unsetenv("NO_COLOR")
         }
@@ -33,11 +30,9 @@ final class GhosttyService {
             return
         }
 
-        // Load user's ghostty config (~/.config/ghostty/config)
         ghostty_config_load_default_files(cfg)
         ghostty_config_finalize(cfg)
 
-        // Runtime callbacks
         var rt = ghostty_runtime_config_s()
         rt.userdata = Unmanaged.passUnretained(self).toOpaque()
         rt.supports_selection_clipboard = true
@@ -84,7 +79,6 @@ final class GhosttyService {
             }
         }
         rt.close_surface_cb = { userdata, needsConfirm in
-            // Surface close is handled by the view layer
         }
 
         guard let createdApp = ghostty_app_new(&rt, cfg) else {
@@ -96,7 +90,6 @@ final class GhosttyService {
         self.app = createdApp
         self.config = cfg
 
-        // Start tick timer for animation/rendering
         tickTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 120.0, repeats: true) { [weak self] _ in
             self?.tick()
         }
@@ -112,7 +105,6 @@ final class GhosttyService {
         let tag = action.tag
         switch tag {
         case GHOSTTY_ACTION_SET_TITLE:
-            // Title updates are handled via surface userdata
             return true
         case GHOSTTY_ACTION_DESKTOP_NOTIFICATION:
             return true
@@ -122,9 +114,6 @@ final class GhosttyService {
     }
 
     nonisolated static func callbackSurface(from userdata: UnsafeMutableRawPointer?) -> ghostty_surface_t? {
-        // In our setup, surface userdata points to the GhosttyTerminalNSView
-        return nil // clipboard reads require surface — handled per-surface
+        return nil
     }
-
-    // Singleton — lives for the entire app lifetime, no cleanup needed
 }

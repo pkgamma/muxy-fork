@@ -34,7 +34,6 @@ final class TerminalTab: Identifiable {
         }
     }
 
-    /// Cycle focus to the next pane in tree order.
     func focusNextPane() {
         let panes = rootNode.allPanes()
         guard panes.count > 1, let currentID = focusedPaneID else { return }
@@ -43,7 +42,6 @@ final class TerminalTab: Identifiable {
         focusedPaneID = panes[nextIndex].id
     }
 
-    /// Cycle focus to the previous pane in tree order.
     func focusPreviousPane() {
         let panes = rootNode.allPanes()
         guard panes.count > 1, let currentID = focusedPaneID else { return }

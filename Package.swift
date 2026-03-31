@@ -8,13 +8,11 @@ let package = Package(
         .macOS(.v14),
     ],
     targets: [
-        // C module exposing the ghostty.h header
         .target(
             name: "GhosttyKit",
             path: "GhosttyKit",
             publicHeadersPath: "."
         ),
-        // The main app, links against the prebuilt static library
         .executableTarget(
             name: "Muxy",
             dependencies: ["GhosttyKit"],
