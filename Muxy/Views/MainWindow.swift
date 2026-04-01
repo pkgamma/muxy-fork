@@ -58,6 +58,7 @@ struct MainWindow: View {
             PaneTabStrip(
                 area: area,
                 isFocused: true,
+                isWindowTitleBar: true,
                 onFocus: {},
                 onSelectTab: { tabID in
                     appState.dispatch(.selectTab(projectID: project.id, areaID: area.id, tabID: tabID))

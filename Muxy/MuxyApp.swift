@@ -61,6 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct WindowConfigurator: NSViewRepresentable {
     let configVersion: Int
 
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
     func makeNSView(context: Context) -> NSView {
         let v = NSView()
         DispatchQueue.main.async {
@@ -70,17 +72,51 @@ struct WindowConfigurator: NSViewRepresentable {
             w.styleMask.insert(.fullSizeContentView)
             w.isMovableByWindowBackground = false
             w.backgroundColor = MuxyTheme.nsBg
-
-            for button in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
-                if let btn = w.standardWindowButton(button) {
-                    btn.superview?.frame.origin.y = -3
-                }
-            }
+            Self.repositionTrafficLights(in: w)
+            context.coordinator.observe(window: w)
         }
         return v
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
         nsView.window?.backgroundColor = MuxyTheme.nsBg
+    }
+
+    static func repositionTrafficLights(in window: NSWindow) {
+        for button in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+            guard let btn = window.standardWindowButton(button) else { continue }
+            btn.superview?.frame.origin.y = -3
+        }
+    }
+
+    final class Coordinator: NSObject {
+        private var observations: [NSObjectProtocol] = []
+
+        func observe(window: NSWindow) {
+            guard observations.isEmpty else { return }
+            let names: [Notification.Name] = [
+                NSWindow.didResizeNotification,
+                NSWindow.didEndLiveResizeNotification,
+                NSWindow.didExitFullScreenNotification,
+                NSWindow.didEnterFullScreenNotification
+            ]
+            for name in names {
+                let token = NotificationCenter.default.addObserver(
+                    forName: name,
+                    object: window,
+                    queue: .main
+                ) { notification in
+                    guard let w = notification.object as? NSWindow else { return }
+                    MainActor.assumeIsolated {
+                        WindowConfigurator.repositionTrafficLights(in: w)
+                    }
+                }
+                observations.append(token)
+            }
+        }
+
+        deinit {
+            observations.forEach { NotificationCenter.default.removeObserver($0) }
+        }
     }
 }

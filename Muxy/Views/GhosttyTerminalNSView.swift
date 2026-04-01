@@ -235,7 +235,7 @@ final class GhosttyTerminalNSView: NSView {
                 }
             }
         } else if !hasMarkedText() {
-            let text = event.characters ?? ""
+            let text = filterSpecialCharacters(event.characters ?? "")
             if !text.isEmpty && !keyEvent.composing {
                 text.withCString { ptr in
                     keyEvent.text = ptr
@@ -362,6 +362,13 @@ final class GhosttyTerminalNSView: NSView {
         case 57: return flags.contains(.capsLock)
         default: return false
         }
+    }
+
+    private func filterSpecialCharacters(_ text: String) -> String {
+        guard let scalar = text.unicodeScalars.first else { return "" }
+        let value = scalar.value
+        if value < 0x20 || (0xF700...0xF8FF).contains(value) { return "" }
+        return text
     }
 
     private func unshiftedCodepoint(from event: NSEvent) -> UInt32 {

@@ -3,6 +3,7 @@ import SwiftUI
 struct PaneTabStrip: View {
     let area: TabArea
     let isFocused: Bool
+    var isWindowTitleBar: Bool = false
     let onFocus: () -> Void
     let onSelectTab: (UUID) -> Void
     let onCreateTab: () -> Void
@@ -26,7 +27,6 @@ struct PaneTabStrip: View {
             }
 
             Spacer(minLength: 0)
-                .background(WindowDragRepresentable())
 
             HStack(spacing: 0) {
                 IconButton(symbol: "square.split.2x1") { onSplit(.horizontal) }
@@ -36,15 +36,27 @@ struct PaneTabStrip: View {
             .padding(.trailing, 4)
         }
         .frame(height: 32)
+        .background(WindowDragRepresentable(alwaysEnabled: isWindowTitleBar))
     }
 }
 
 struct WindowDragRepresentable: NSViewRepresentable {
-    func makeNSView(context: Context) -> WindowDragView { WindowDragView() }
-    func updateNSView(_ nsView: WindowDragView, context: Context) {}
+    var alwaysEnabled: Bool = false
+
+    func makeNSView(context: Context) -> WindowDragView {
+        let view = WindowDragView()
+        view.alwaysEnabled = alwaysEnabled
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowDragView, context: Context) {
+        nsView.alwaysEnabled = alwaysEnabled
+    }
 }
 
 final class WindowDragView: NSView {
+    var alwaysEnabled = false
+
     private var isAtWindowTop: Bool {
         guard let window else { return false }
         let frameInWindow = convert(bounds, to: nil)
@@ -52,7 +64,7 @@ final class WindowDragView: NSView {
     }
 
     override public func mouseDown(with event: NSEvent) {
-        guard isAtWindowTop else {
+        guard alwaysEnabled || isAtWindowTop else {
             super.mouseDown(with: event)
             return
         }
