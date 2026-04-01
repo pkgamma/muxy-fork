@@ -20,12 +20,14 @@ struct TerminalBridge: NSViewRepresentable {
 
     final class Coordinator {
         var wasFocused = false
+        var paneID: UUID?
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeNSView(context: Context) -> GhosttyTerminalNSView {
-        let view = GhosttyTerminalNSView(workingDirectory: state.projectPath)
+        let registry = TerminalViewRegistry.shared
+        let view = registry.view(for: state.id, workingDirectory: state.projectPath)
         view.isFocused = focused
         view.onFocus = onFocus
         view.onProcessExit = onProcessExit
@@ -33,6 +35,7 @@ struct TerminalBridge: NSViewRepresentable {
             state?.title = title
         }
         context.coordinator.wasFocused = focused
+        context.coordinator.paneID = state.id
         if focused {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 view.window?.makeFirstResponder(view)
@@ -44,6 +47,9 @@ struct TerminalBridge: NSViewRepresentable {
     func updateNSView(_ nsView: GhosttyTerminalNSView, context: Context) {
         nsView.onFocus = onFocus
         nsView.onProcessExit = onProcessExit
+        nsView.onTitleChange = { [weak state] title in
+            state?.title = title
+        }
         let wasFocused = context.coordinator.wasFocused
         context.coordinator.wasFocused = focused
         nsView.isFocused = focused

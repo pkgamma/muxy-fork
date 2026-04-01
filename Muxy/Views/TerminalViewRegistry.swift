@@ -1,0 +1,23 @@
+import AppKit
+
+@MainActor
+final class TerminalViewRegistry {
+    static let shared = TerminalViewRegistry()
+
+    private var views: [UUID: GhosttyTerminalNSView] = [:]
+
+    private init() {}
+
+    func view(for paneID: UUID, workingDirectory: String) -> GhosttyTerminalNSView {
+        if let existing = views[paneID] {
+            return existing
+        }
+        let view = GhosttyTerminalNSView(workingDirectory: workingDirectory)
+        views[paneID] = view
+        return view
+    }
+
+    func removeView(for paneID: UUID) {
+        views.removeValue(forKey: paneID)
+    }
+}

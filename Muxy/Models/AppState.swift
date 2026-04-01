@@ -53,6 +53,9 @@ final class AppState {
 
     func closeArea(_ areaID: UUID, projectID: UUID) {
         guard let root = workspaceRoots[projectID] else { return }
+        if let area = root.findArea(id: areaID) {
+            cleanupTerminalViews(for: area)
+        }
         guard let newRoot = root.removing(areaID: areaID) else {
             workspaceRoots.removeValue(forKey: projectID)
             focusedAreaID.removeValue(forKey: projectID)
@@ -147,11 +150,23 @@ final class AppState {
     }
 
     func removeProject(_ projectID: UUID) {
+        if let root = workspaceRoots[projectID] {
+            for area in root.allAreas() {
+                cleanupTerminalViews(for: area)
+            }
+        }
         workspaceRoots.removeValue(forKey: projectID)
         focusedAreaID.removeValue(forKey: projectID)
         focusHistory.removeValue(forKey: projectID)
         if activeProjectID == projectID {
             activeProjectID = nil
+        }
+    }
+
+    private func cleanupTerminalViews(for area: TabArea) {
+        let registry = TerminalViewRegistry.shared
+        for tab in area.tabs {
+            registry.removeView(for: tab.pane.id)
         }
     }
 }
