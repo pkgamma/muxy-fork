@@ -14,3 +14,5 @@ GhosttyKit/ghostty.h
 .claude/
 *.dmg
 appcast*.xml
+AGENTS.md
+CLAUDE.md
